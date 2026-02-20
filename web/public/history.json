@@ -10,5 +10,17 @@
     "entry_price": null,
     "stop_price": null,
     "reason": "No entry candidates this week."
+  },
+  {
+    "asof": "2026-02-20",
+    "status": "CASH",
+    "action": "HOLD",
+    "target": "SHY",
+    "lev": 3.0,
+    "cash_ticker": "SHY",
+    "pending_for": "2026-02-23",
+    "entry_price": null,
+    "stop_price": null,
+    "reason": "No position. (2026-02-20T14:35:34)"
   }
 ]
