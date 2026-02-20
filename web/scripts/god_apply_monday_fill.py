@@ -80,6 +80,20 @@ def main():
         raise SystemExit(f"Missing: {STATE_PATH}")
 
     st = load_json(STATE_PATH)
+
+    # ------------------------------------------------------------
+    # 安全パッチ：UI/後工程が壊れないよう、キーを必ず持たせる
+    # ------------------------------------------------------------
+    st.setdefault("entry_price", None)
+    st.setdefault("stop_price", None)
+    st.setdefault("take_profit", None)
+
+    # valid_until は pending_for があるならそれを引き継ぐ（無ければNone）
+    st.setdefault("valid_until", st.get("pending_for", None))
+
+    # 更新時刻（毎回触る）
+    st.setdefault("updated_at", None)
+
     status = str(st.get("status", "")).upper()
     action = str(st.get("action", "")).upper()
     target = st.get("target", None)
@@ -90,7 +104,9 @@ def main():
         return
 
     now = datetime.now().isoformat(timespec="seconds")
+    st["updated_at"] = now
 
+    # BUY約定（PENDING BUY のみ）
     if action == "BUY" and target:
         op = fetch_open_price(str(target))
         if op is None:
@@ -104,6 +120,14 @@ def main():
         st["status"] = "IN_POSITION"
         st["action"] = "HOLD"
         st["entry_price"] = float(entry)
+
+        # --------------------------------------------------------
+        # 重要：stop/tp は「PENDING側で決めた値」を引き継ぐ。
+        # ここでは上書きしない（NoneならNoneのまま）。
+        # --------------------------------------------------------
+        # st["stop_price"] = st["stop_price"]
+        # st["take_profit"] = st["take_profit"]
+
         st["reason"] = f"Filled at open. ({now})"
         save_json(STATE_PATH, st)
         append_history(HIST_PATH, st, keep=50)
@@ -114,6 +138,8 @@ def main():
     st["status"] = "CASH"
     st["action"] = "HOLD"
     st["entry_price"] = None
+    st["stop_price"] = None
+    st["take_profit"] = None
     st["reason"] = f"No position. ({now})"
     save_json(STATE_PATH, st)
     append_history(HIST_PATH, st, keep=50)
