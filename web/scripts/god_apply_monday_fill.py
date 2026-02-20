@@ -5,29 +5,64 @@ from datetime import datetime
 import pandas as pd
 import yfinance as yf
 
-STATE_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),  # .../web
-    "public", "data", "god_state.json"
-)
+# Paths (repo/web)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # .../web
+STATE_PATH = os.path.join(BASE_DIR, "public", "god_state.json")
+HIST_PATH = os.path.join(BASE_DIR, "public", "history.json")
 
 FEE_RATE = 0.0002
 SLIPPAGE = 0.0
 
 
-def load_json(path: str) -> dict:
+def load_json(path: str):
+    # utf-8-sig: BOM混入耐性
     with open(path, "r", encoding="utf-8-sig") as f:
         return json.load(f)
 
 
-def save_json(path: str, obj: dict):
+def save_json(path: str, obj):
     with open(path, "w", encoding="utf-8", newline="\n") as f:
         json.dump(obj, f, ensure_ascii=False, indent=2)
 
 
+def append_history(hist_path: str, row: dict, keep: int = 50):
+    """
+    public/history.json に履歴(list[dict])を保存。
+    同一キー(asof,status,action,target)は置換。
+    asof降順でkeep件。
+    """
+    hist = []
+    if os.path.exists(hist_path):
+        try:
+            with open(hist_path, "r", encoding="utf-8-sig") as f:
+                hist = json.load(f)
+            if not isinstance(hist, list):
+                hist = []
+        except Exception:
+            hist = []
+
+    key = (row.get("asof"), row.get("status"), row.get("action"), row.get("target"))
+
+    def row_key(x):
+        return (x.get("asof"), x.get("status"), x.get("action"), x.get("target"))
+
+    replaced = False
+    for i in range(len(hist)):
+        if row_key(hist[i]) == key:
+            hist[i] = row
+            replaced = True
+            break
+    if not replaced:
+        hist.append(row)
+
+    hist.sort(key=lambda x: x.get("asof", ""), reverse=True)
+    hist = hist[:keep]
+    save_json(hist_path, hist)
+
+
 def fetch_open_price(ticker: str) -> float | None:
     """
-    月曜の寄り値（ざっくり）：
-    直近数日の日足を取り、最後の行のOpenを使う。
+    直近7日の日足から最新行のOpenを取得
     """
     df = yf.download(ticker, period="7d", interval="1d", progress=False).dropna()
     if df.empty:
@@ -49,7 +84,7 @@ def main():
     action = str(st.get("action", "")).upper()
     target = st.get("target", None)
 
-    # すでに確定済みなら何もしない
+    # PENDING以外は何もしない
     if status != "PENDING":
         print("No pending. Skip.")
         return
@@ -59,9 +94,9 @@ def main():
     if action == "BUY" and target:
         op = fetch_open_price(str(target))
         if op is None:
-            # 寄り値取れないなら pending のまま（事故防止）
             st["reason"] = f"Pending BUY but open price not available. ({now})"
             save_json(STATE_PATH, st)
+            append_history(HIST_PATH, st, keep=50)
             print("Open price unavailable. Kept PENDING.")
             return
 
@@ -71,15 +106,17 @@ def main():
         st["entry_price"] = float(entry)
         st["reason"] = f"Filled at open. ({now})"
         save_json(STATE_PATH, st)
+        append_history(HIST_PATH, st, keep=50)
         print("Applied fill:", st)
         return
 
-    # CASH（またはSELL運用にしたいならここを拡張）
+    # BUY以外（CASH想定）
     st["status"] = "CASH"
     st["action"] = "HOLD"
     st["entry_price"] = None
     st["reason"] = f"No position. ({now})"
     save_json(STATE_PATH, st)
+    append_history(HIST_PATH, st, keep=50)
     print("Set CASH:", st)
 
 
