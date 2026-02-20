@@ -32,6 +32,24 @@ jobs:
         run: |
           python -u scripts/god_apply_monday_fill.py
 
+      # ★ここから追加：R2へアップロード
+      - name: Install awscli
+        run: |
+          python -m pip install --upgrade awscli
+
+      - name: Upload public/ to Cloudflare R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET: merry-signal-data
+        run: |
+          aws s3 sync public "s3://$R2_BUCKET" \
+            --endpoint-url "https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com" \
+            --delete
+      # ★追加ここまで
+
       - name: Commit god_state.json and history.json
         run: |
           git config user.name "github-actions[bot]"
