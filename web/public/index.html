@@ -5,28 +5,186 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Merry Signal</title>
   <style>
-    body{font-family:system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding:16px; line-height:1.5;}
-    pre{background:#111; color:#eee; padding:12px; border-radius:10px; overflow:auto;}
+    :root{
+      --bg:#0b0f17;
+      --card:#121a27;
+      --text:#e8eefc;
+      --muted:#a9b4cc;
+      --ok:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --buy:#ef4444;
+      --cash:#38bdf8;
+      --sell:#a78bfa;
+      --border: rgba(255,255,255,0.08);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; padding:24px;
+      background: linear-gradient(180deg, #0b0f17 0%, #060912 100%);
+      color:var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", sans-serif;
+      line-height:1.5;
+    }
+    .wrap{max-width:980px; margin:0 auto}
+    h1{margin:0 0 6px; font-size:28px; letter-spacing:0.2px}
+    .sub{color:var(--muted); margin:0 0 18px}
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0 18px}
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px; border-radius:999px;
+      background: rgba(255,255,255,0.06);
+      border:1px solid var(--border);
+      font-weight:600;
+    }
+    .dot{width:10px; height:10px; border-radius:50%}
+    .grid{display:grid; grid-template-columns: repeat(12, 1fr); gap:12px}
+    .card{
+      background: rgba(18,26,39,0.72);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px 14px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+      backdrop-filter: blur(6px);
+    }
+    .span-4{grid-column: span 4}
+    .span-6{grid-column: span 6}
+    .span-12{grid-column: span 12}
+    @media (max-width: 820px){
+      .span-4,.span-6{grid-column: span 12}
+    }
+    .k{color:var(--muted); font-size:12px; margin-bottom:4px}
+    .v{font-size:18px; font-weight:700}
+    .v.big{font-size:24px}
+    .reason{color:var(--muted); font-size:14px}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace}
+    pre{
+      margin:10px 0 0;
+      padding:12px;
+      background: rgba(0,0,0,0.35);
+      border:1px solid var(--border);
+      border-radius:14px;
+      overflow:auto;
+      color:#e6edf7;
+    }
+    details summary{
+      cursor:pointer;
+      color:var(--muted);
+      user-select:none;
+      list-style:none;
+    }
+    details summary::-webkit-details-marker{display:none}
+    .pill{
+      display:inline-flex; align-items:center;
+      padding:6px 10px; border-radius:999px;
+      font-weight:800; letter-spacing:0.3px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+    }
+    .pill.buy{color:var(--buy)}
+    .pill.cash{color:var(--cash)}
+    .pill.sell{color:var(--sell)}
+    .footer{margin-top:16px; color:var(--muted); font-size:12px}
+    a{color:var(--cash); text-decoration:none}
+    a:hover{text-decoration:underline}
   </style>
 </head>
 <body>
-  <h1>Merry Signal God Clean</h1>
-  <div id="status">loading...</div>
-  <pre id="json"></pre>
+  <div class="wrap">
+    <h1>Merry Signal God Clean</h1>
+    <p class="sub">Vercel Static UI ← GitHub Actions JSON</p>
+
+    <div class="row">
+      <div class="badge" id="badge">
+        <span class="dot" id="dot"></span>
+        <span id="badgeText">Loading…</span>
+      </div>
+      <span class="pill mono" id="actionPill">ACTION</span>
+      <span class="badge mono" id="asofBadge">asof: -</span>
+      <span class="badge mono" id="pendingBadge">pending_for: -</span>
+    </div>
+
+    <div class="grid">
+      <div class="card span-4">
+        <div class="k">Target</div>
+        <div class="v big mono" id="target">-</div>
+      </div>
+      <div class="card span-4">
+        <div class="k">Leverage</div>
+        <div class="v big mono" id="lev">-</div>
+      </div>
+      <div class="card span-4">
+        <div class="k">Cash Ticker</div>
+        <div class="v big mono" id="cash">-</div>
+      </div>
+
+      <div class="card span-12">
+        <div class="k">Reason</div>
+        <div class="reason" id="reason">-</div>
+
+        <details style="margin-top:12px">
+          <summary>Raw JSON</summary>
+          <pre class="mono" id="raw">{}</pre>
+        </details>
+
+        <div class="footer">
+          JSON endpoint: <a href="./god_state.json" class="mono">/god_state.json</a>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script>
-    fetch('./god_state.json', { cache: 'no-store' })
-      .then(r => {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      })
-      .then(data => {
-        document.getElementById('status').textContent = 'OK';
-        document.getElementById('json').textContent = JSON.stringify(data, null, 2);
-      })
-      .catch(err => {
-        document.getElementById('status').textContent = 'FAILED: ' + err.message;
-      });
+    const el = (id) => document.getElementById(id);
+
+    function setBadge(state, text){
+      el('badgeText').textContent = text;
+      const dot = el('dot');
+      if(state === 'ok') dot.style.background = 'var(--ok)';
+      else if(state === 'warn') dot.style.background = 'var(--warn)';
+      else dot.style.background = 'var(--bad)';
+    }
+
+    function setActionPill(action){
+      const p = el('actionPill');
+      p.textContent = action || '-';
+      p.classList.remove('buy','cash','sell');
+      if(action === 'BUY') p.classList.add('buy');
+      else if(action === 'CASH') p.classList.add('cash');
+      else if(action === 'SELL') p.classList.add('sell');
+    }
+
+    async function main(){
+      try{
+        const res = await fetch('./god_state.json', { cache: 'no-store' });
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+
+        // top line
+        const status = data.status || 'UNKNOWN';
+        const action = data.action || 'UNKNOWN';
+
+        setBadge('ok', `OK · ${status}`);
+        setActionPill(action);
+
+        el('asofBadge').textContent = 'asof: ' + (data.asof ?? '-');
+        el('pendingBadge').textContent = 'pending_for: ' + (data.pending_for ?? '-');
+
+        // cards
+        el('target').textContent = data.target ?? '-';
+        el('lev').textContent = (data.lev ?? '-') + '';
+        el('cash').textContent = data.cash_ticker ?? '-';
+        el('reason').textContent = data.reason ?? '-';
+
+        el('raw').textContent = JSON.stringify(data, null, 2);
+      }catch(e){
+        setBadge('bad', 'FAILED · ' + e.message);
+        setActionPill('ERROR');
+        el('reason').textContent = 'Could not load ./god_state.json';
+      }
+    }
+
+    main();
   </script>
 </body>
 </html>
