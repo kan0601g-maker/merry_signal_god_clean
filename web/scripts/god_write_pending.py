@@ -10,7 +10,7 @@ import wave3_god_core as G
 
 # 出力先（Next.js public）
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # .../web
-OUT_DIR = os.path.join(BASE_DIR, "public", "data")
+OUT_DIR = os.path.join(BASE_DIR, "public")
 OUT_PATH = os.path.join(OUT_DIR, "god_state.json")
 
 
