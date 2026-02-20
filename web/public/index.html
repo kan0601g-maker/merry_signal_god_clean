@@ -138,7 +138,10 @@
         <p class="sub">Decision-first UI (Static) ← GitHub Actions JSON</p>
       </div>
 
+      <!-- 右上バッジ列 -->
       <div class="row" style="justify-content:flex-end; margin:0">
+        <span class="badge" title="Owner">ヨッチ用</span>
+
         <div class="badge" id="badge">
           <span class="dot" id="dot"></span>
           <span id="badgeText">Loading…</span>
@@ -184,7 +187,15 @@
 
         <div class="footer">
           JSON endpoint: <a href="./god_state.json" class="mono">/god_state.json</a>
+          &nbsp;|&nbsp;
+          History: <a href="./history.json" class="mono">/history.json</a>
         </div>
+      </div>
+
+      <!-- 履歴（最新10件） -->
+      <div class="card span-12">
+        <div class="k">History (latest 10)</div>
+        <pre class="mono" id="hist" style="margin:0; background: rgba(0,0,0,0.25)">loading...</pre>
       </div>
     </div>
   </div>
@@ -222,11 +233,28 @@
     }
 
     function statusToState(status){
-      // 状態色（必要に応じて増やせる）
       if(status === 'OPEN' || status === 'LIVE') return 'ok';
       if(status === 'PENDING') return 'warn';
       if(status === 'ERROR') return 'bad';
       return 'ok';
+    }
+
+    async function loadHistory(){
+      try{
+        const hres = await fetch('./history.json', { cache: 'no-store' });
+        if(!hres.ok){
+          el('hist').textContent = '(history not found)';
+          return;
+        }
+        const hist = await hres.json();
+        const top = (Array.isArray(hist) ? hist : []).slice(0, 10);
+        const lines = top.map(x =>
+          `${x.asof ?? '-'}  ${String(x.status ?? '-').toUpperCase()}  ${String(x.action ?? '-').toUpperCase()}  ${x.target ?? '-'}`
+        );
+        el('hist').textContent = lines.length ? lines.join('\n') : '(empty)';
+      }catch(e){
+        el('hist').textContent = '(history load failed)';
+      }
     }
 
     async function main(){
@@ -256,6 +284,10 @@
         el('reason').textContent = data.reason ?? '-';
 
         el('raw').textContent = JSON.stringify(data, null, 2);
+
+        // history
+        await loadHistory();
+
       }catch(e){
         setBadge('bad', 'ERROR');
         setActionPill('ERROR');
@@ -263,6 +295,7 @@
         el('decisionAct').textContent = 'ERROR';
         el('decisionTgt').textContent = '→ JSON 読み込み失敗';
         el('reason').textContent = 'Could not load ./god_state.json (' + e.message + ')';
+        el('hist').textContent = '(history unavailable)';
       }
     }
 

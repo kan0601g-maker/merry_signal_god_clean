@@ -2,32 +2,69 @@
 import os
 import json
 from datetime import timedelta
+
 import numpy as np
 import pandas as pd
 
-# 🔒 神コードは凍結：importして参照するだけ
 import wave3_god_core as G
 
-# 出力先（Next.js public）
+# Paths (repo/web)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # .../web
 OUT_DIR = os.path.join(BASE_DIR, "public")
 OUT_PATH = os.path.join(OUT_DIR, "god_state.json")
+HIST_PATH = os.path.join(OUT_DIR, "history.json")
 
 
 def ensure_dirs():
     os.makedirs(OUT_DIR, exist_ok=True)
 
 
-def save_json(path: str, obj: dict):
+def save_json(path: str, obj):
     with open(path, "w", encoding="utf-8", newline="\n") as f:
         json.dump(obj, f, ensure_ascii=False, indent=2)
 
 
+def append_history(hist_path: str, row: dict, keep: int = 50):
+    """
+    public/history.json に履歴（list[dict]）として保存。
+    同一キー(asof,status,action,target)は置換、なければ追加。
+    asof降順で keep 件に制限。
+    """
+    hist = []
+    if os.path.exists(hist_path):
+        try:
+            with open(hist_path, "r", encoding="utf-8") as f:
+                hist = json.load(f)
+            if not isinstance(hist, list):
+                hist = []
+        except Exception:
+            hist = []
+
+    key = (row.get("asof"), row.get("status"), row.get("action"), row.get("target"))
+
+    def row_key(x):
+        return (x.get("asof"), x.get("status"), x.get("action"), x.get("target"))
+
+    replaced = False
+    for i in range(len(hist)):
+        if row_key(hist[i]) == key:
+            hist[i] = row
+            replaced = True
+            break
+    if not replaced:
+        hist.append(row)
+
+    # YYYY-MM-DD string sort is safe for chronological ordering
+    hist.sort(key=lambda x: x.get("asof", ""), reverse=True)
+    hist = hist[:keep]
+
+    save_json(hist_path, hist)
+
+
 def _to_weekly(df_d: pd.DataFrame) -> pd.DataFrame:
-    # GodCore側にあればそれを使う（凍結参照）
     if hasattr(G, "to_weekly"):
         return G.to_weekly(df_d)
-    # フォールバック（念のため）
+
     return df_d.resample("W-FRI").agg(
         {"Open": "first", "High": "max", "Low": "min", "Close": "last"}
     ).dropna()
@@ -35,15 +72,15 @@ def _to_weekly(df_d: pd.DataFrame) -> pd.DataFrame:
 
 def build_weekly_signals(df_d: pd.DataFrame) -> pd.DataFrame:
     """
-    GodCoreの build_weekly_signals_for_ticker があればそれを使う（最優先）。
-    無い/仕様違いの時は最低限の列を揃える（通常ここは通らない想定）。
+    Prefer GodCore implementation if exists.
+    Fallback creates minimal weekly frame.
     """
     if hasattr(G, "build_weekly_signals_for_ticker"):
         return G.build_weekly_signals_for_ticker(df_d).copy()
 
-    # フォールバック（通常ここは通らない）
     df_w = _to_weekly(df_d).copy()
     df_w["Zone"] = np.nan
+
     h = df_w["High"].to_numpy(float)
     for i in range(len(df_w)):
         if hasattr(G, "find_horizontal_wick_zone"):
@@ -63,17 +100,12 @@ def build_weekly_signals(df_d: pd.DataFrame) -> pd.DataFrame:
 
 def ensure_cross_events(df_w: pd.DataFrame) -> pd.DataFrame:
     """
-    過剰点灯を潰す肝：
-    - FirstBreak は「CloseがZoneを上抜けた週（クロス）」に正規化
-    - RebreakEvent も同様に「クロス週」のみにする
-
-    ※ GodCoreが既に良い定義を持っていても、安全側に統一する。
+    Provide cross-up event columns if GodCore didn't.
     """
     df = df_w.copy()
     if "Zone" not in df.columns:
         df["Zone"] = np.nan
 
-    # 必須列が無い場合の保険
     for col in ["Close", "Low", "High"]:
         if col not in df.columns:
             df[col] = np.nan
@@ -91,10 +123,8 @@ def ensure_cross_events(df_w: pd.DataFrame) -> pd.DataFrame:
 
     cross_up = above & (~prev_above)
 
-    # クロス定義で上書き
     df["FirstBreak"] = cross_up
 
-    # Retest が無い場合は作る（通常GodCoreにはある）
     if "Retest" not in df.columns:
         tol = float(getattr(G, "RETEST_TOL", 0.003))
         l = df["Low"].to_numpy(float)
@@ -105,17 +135,14 @@ def ensure_cross_events(df_w: pd.DataFrame) -> pd.DataFrame:
             retest[i] = (l[i] <= z[i] * (1.0 + tol)) and (l[i] >= z[i] * (1.0 - 3.0 * tol))
         df["Retest"] = retest
 
-    # RebreakEvent = クロス週のみ
     df["RebreakEvent"] = cross_up
-
     return df
 
 
 def compute_entry_event(df: pd.DataFrame) -> np.ndarray:
     """
-    ticker単体の「点灯週」だけ True になる配列（1シーケンス1回）
-    - breakout_seen / retest_seen の状態機械
-    - ok したらリセットして過剰点灯を殺す
+    Entry event sequence:
+    breakout_seen -> retest_seen -> rebreak event
     """
     entry = np.zeros(len(df), dtype=bool)
 
@@ -155,7 +182,7 @@ def rank_candidates(cands: list[dict]) -> list[dict]:
     if mode == "STRENGTH":
         return sorted(cands, key=lambda x: x.get("strength", -np.inf), reverse=True)
 
-    # RISK_ADJ（st / atr_pct）
+    # RISK_ADJ: strength / atr_pct
     out = []
     for x in cands:
         ap = x.get("atr_pct", np.nan)
@@ -182,21 +209,18 @@ def main():
     data_start = getattr(G, "DATA_START", "1985-01-01")
     bt_start = getattr(G, "BT_START", "2000-01-01")
 
-    # 1) 各ティッカーの週足シグナル構築（GodCore参照）
+    # 1) Build weekly signals for all tickers
     sigs: dict[str, pd.DataFrame] = {}
     for t in tickers + [cash_ticker]:
         df_d = G.download_daily(t, data_start)
         w = build_weekly_signals(df_d)
 
-        # BT_START以降に絞る（神コードと同じ期間感）
         w = w[w.index >= pd.Timestamp(bt_start)].copy()
-
-        # 過剰点灯を潰す正規化
         w = ensure_cross_events(w)
 
         sigs[t] = w
 
-    # 2) 共通の最終週（全銘柄揃う週）
+    # 2) Find common index and asof
     common = None
     for df in sigs.values():
         common = df.index if common is None else common.intersection(df.index)
@@ -207,10 +231,9 @@ def main():
     dt = common[-1]
     asof = str(dt.date())
 
-    # 次の「月曜」目安（表示用）
     pending_for = (dt + timedelta(days=3)).date().isoformat()  # Fri +3 = Mon
 
-    # 3) 候補抽出（点灯週のみ）
+    # 3) Detect entry candidates
     cands = []
     for t in tickers:
         df = sigs[t]
@@ -245,7 +268,7 @@ def main():
     ranked = rank_candidates(cands) if cands else []
     pick = ranked[0]["ticker"] if ranked else None
 
-    # 4) ★重要：PENDINGは BUY or CASH しか出さない（HOLD禁止）
+    # 4) Output
     if pick:
         out = {
             "asof": asof,
@@ -274,7 +297,10 @@ def main():
         }
 
     save_json(OUT_PATH, out)
+    append_history(HIST_PATH, out, keep=50)
+
     print(f"Saved: {OUT_PATH}")
+    print(f"History: {HIST_PATH}")
     print(out)
 
 
