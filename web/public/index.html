@@ -6,11 +6,16 @@
   <title>Merry Signal</title>
   <style>
     :root{
-      --bg1:#0b0f17;
-      --bg2:#060912;
-      --card:#121a27;
-      --text:#e8eefc;
-      --muted:#a9b4cc;
+      /* ===== Purple glass theme ===== */
+      --bgTop:#2a0a4a;
+      --bgMid:#120a2a;
+      --bgBot:#050814;
+
+      --card: rgba(18, 18, 40, 0.58);
+      --card2: rgba(10, 12, 30, 0.40);
+
+      --text:#eef1ff;
+      --muted:#b8b6d6;
 
       --ok:#22c55e;
       --warn:#f59e0b;
@@ -20,45 +25,62 @@
       --cash:#38bdf8;
       --sell:#a78bfa;
 
-      --border: rgba(255,255,255,0.08);
-      --shadow: 0 12px 30px rgba(0,0,0,0.35);
+      --accent:#a78bfa;
+      --accent2:#7c3aed;
+
+      --border: rgba(255,255,255,0.12);
+      --border2: rgba(167,139,250,0.26);
+
+      --shadow: 0 18px 50px rgba(0,0,0,0.45);
+      --shadow2: 0 10px 26px rgba(0,0,0,0.25);
     }
+
     *{box-sizing:border-box}
+
     body{
       margin:0; padding:22px;
-      background: linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%);
+      background:
+        radial-gradient(1200px 520px at 18% 10%, rgba(167,139,250,0.55), transparent 60%),
+        radial-gradient(900px 420px at 85% 18%, rgba(56,189,248,0.22), transparent 60%),
+        linear-gradient(180deg, var(--bgTop) 0%, var(--bgMid) 42%, var(--bgBot) 100%);
       color:var(--text);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", sans-serif;
       line-height:1.5;
-      transition: background 220ms ease;
+      transition: filter 220ms ease;
     }
+
     .wrap{max-width:980px; margin:0 auto}
+
     .top{
       display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
       margin-bottom:14px;
     }
+
     h1{margin:0; font-size:26px; letter-spacing:0.2px}
     .sub{margin:6px 0 0; color:var(--muted); font-size:13px}
+
+    /* glass containers */
+    .decision, .card{
+      background: linear-gradient(180deg, var(--card) 0%, var(--card2) 100%);
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
 
     .decision{
       margin:14px 0 16px;
       padding:16px 16px;
-      border-radius:18px;
-      border:1px solid var(--border);
-      background: rgba(18,26,39,0.72);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(6px);
     }
+
     .decision .label{color:var(--muted); font-size:12px; margin-bottom:8px}
+
     .decision .big{
       display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
       font-weight:900;
       letter-spacing:0.6px;
     }
-    .decision .big .act{
-      font-size:40px;
-      line-height:1;
-    }
+    .decision .big .act{font-size:40px; line-height:1}
     .decision .big .tgt{
       font-size:24px;
       line-height:1.2;
@@ -67,13 +89,16 @@
     }
 
     .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0 14px}
+
     .badge{
       display:inline-flex; align-items:center; gap:8px;
       padding:8px 12px; border-radius:999px;
       background: rgba(255,255,255,0.06);
-      border:1px solid var(--border);
+      border:1px solid var(--border2);
+      box-shadow: var(--shadow2);
       font-weight:700;
     }
+
     .dot{width:10px; height:10px; border-radius:50%}
     .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace}
 
@@ -81,30 +106,32 @@
       display:inline-flex; align-items:center;
       padding:6px 10px; border-radius:999px;
       font-weight:900; letter-spacing:0.3px;
-      border:1px solid var(--border);
+      border:1px solid var(--border2);
       background: rgba(255,255,255,0.06);
+      box-shadow: var(--shadow2);
     }
-    .pill.buy{color:var(--buy)}
-    .pill.cash{color:var(--cash)}
-    .pill.sell{color:var(--sell)}
+
+    .pill.buy { color: var(--buy);  border-color: rgba(239,68,68,0.35); }
+    .pill.cash{ color: var(--cash); border-color: rgba(56,189,248,0.35); }
+    .pill.sell{ color: var(--sell); border-color: rgba(167,139,250,0.35); }
 
     .grid{display:grid; grid-template-columns: repeat(12, 1fr); gap:12px}
+
     .card{
-      background: rgba(18,26,39,0.72);
-      border:1px solid var(--border);
-      border-radius:16px;
       padding:14px 14px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(6px);
+      border-radius:16px;
     }
+
     .span-4{grid-column: span 4}
     .span-6{grid-column: span 6}
     .span-12{grid-column: span 12}
+
     @media (max-width: 820px){
       .top{flex-direction:column}
       .span-4,.span-6{grid-column: span 12}
       .decision .big .act{font-size:34px}
     }
+
     .k{color:var(--muted); font-size:12px; margin-bottom:4px}
     .v{font-size:20px; font-weight:900}
     .reason{color:var(--muted); font-size:14px}
@@ -116,15 +143,17 @@
       list-style:none;
     }
     details summary::-webkit-details-marker{display:none}
+
     pre{
       margin:10px 0 0;
       padding:12px;
-      background: rgba(0,0,0,0.35);
-      border:1px solid var(--border);
+      background: rgba(0,0,0,0.28);
+      border:1px solid rgba(255,255,255,0.10);
       border-radius:14px;
       overflow:auto;
       color:#e6edf7;
     }
+
     .footer{margin-top:14px; color:var(--muted); font-size:12px}
     a{color:var(--cash); text-decoration:none}
     a:hover{text-decoration:underline}
@@ -176,7 +205,7 @@
         <div class="v mono" id="cash">-</div>
       </div>
 
-      <!-- 追加：Entry / Stop / Risk -->
+      <!-- Entry / Stop / Risk -->
       <div class="card span-4">
         <div class="k">Entry Price</div>
         <div class="v mono" id="entry">-</div>
@@ -209,7 +238,7 @@
       <!-- 履歴（最新10件） -->
       <div class="card span-12">
         <div class="k">History (latest 10)</div>
-        <pre class="mono" id="hist" style="margin:0; background: rgba(0,0,0,0.25)">loading...</pre>
+        <pre class="mono" id="hist" style="margin:0; background: rgba(0,0,0,0.20)">loading...</pre>
       </div>
     </div>
   </div>
@@ -234,20 +263,21 @@
       else if(action === 'SELL') p.classList.add('sell');
     }
 
+    // Purple base is fixed; small filter shifts indicate state.
     function applyTheme(action){
       if(action === 'BUY'){
-        document.body.style.background = 'linear-gradient(180deg, #2a0b12 0%, #060912 100%)';
+        document.body.style.filter = 'hue-rotate(-8deg) saturate(1.15)';
       } else if(action === 'CASH'){
-        document.body.style.background = 'linear-gradient(180deg, #0b1b2a 0%, #060912 100%)';
+        document.body.style.filter = 'hue-rotate(12deg) saturate(1.05)';
       } else if(action === 'SELL'){
-        document.body.style.background = 'linear-gradient(180deg, #1c102a 0%, #060912 100%)';
+        document.body.style.filter = 'hue-rotate(28deg) saturate(1.10)';
       } else {
-        document.body.style.background = 'linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%)';
+        document.body.style.filter = 'none';
       }
     }
 
     function statusToState(status){
-      if(status === 'OPEN' || status === 'LIVE') return 'ok';
+      if(status === 'OPEN' || status === 'LIVE' || status === 'IN_POSITION') return 'ok';
       if(status === 'PENDING') return 'warn';
       if(status === 'ERROR') return 'bad';
       return 'ok';
@@ -297,7 +327,7 @@
         el('cash').textContent = data.cash_ticker ?? '-';
         el('reason').textContent = data.reason ?? '-';
 
-        // 追加：Entry / Stop / Risk
+        // Entry / Stop / Risk
         const fmt = (x) => (x == null ? '-' : (typeof x === 'number' ? x.toFixed(2) : String(x)));
         const entry = data.entry_price;
         const stop  = data.stop_price;
@@ -313,18 +343,18 @@
 
         el('raw').textContent = JSON.stringify(data, null, 2);
 
-        // history
         await loadHistory();
 
       }catch(e){
         setBadge('bad', 'ERROR');
         setActionPill('ERROR');
         applyTheme('UNKNOWN');
+
         el('decisionAct').textContent = 'ERROR';
         el('decisionTgt').textContent = '→ JSON 読み込み失敗';
         el('reason').textContent = 'Could not load ./god_state.json (' + e.message + ')';
         el('hist').textContent = '(history unavailable)';
-        // 追加カードも初期化
+
         if (el('entry')) el('entry').textContent = '-';
         if (el('stop')) el('stop').textContent = '-';
         if (el('risk')) el('risk').textContent = '-';

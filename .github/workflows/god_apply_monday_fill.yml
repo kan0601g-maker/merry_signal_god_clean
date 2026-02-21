@@ -17,27 +17,31 @@ jobs:
         working-directory: web
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.13"
 
-      - name: Install deps
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run god_apply_monday_fill
+      - name: Run monday fill
         run: |
           python -u scripts/god_apply_monday_fill.py
 
-      # ★ここから追加：R2へアップロード
-      - name: Install awscli
-        run: |
-          python -m pip install --upgrade awscli
+      # =========================
+      # Cloudflare R2 Upload (SAFE VERSION)
+      # =========================
 
-      - name: Upload public/ to Cloudflare R2
+      - name: Install awscli
+        run: python -m pip install --upgrade awscli
+
+      - name: Upload selected files to Cloudflare R2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -47,13 +51,19 @@ jobs:
         run: |
           aws s3 sync public "s3://$R2_BUCKET" \
             --endpoint-url "https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com" \
-            --delete
-      # ★追加ここまで
+            --exclude "*" \
+            --include "index.html" \
+            --include "god_state.json" \
+            --include "history.json"
 
-      - name: Commit god_state.json and history.json
+      # =========================
+      # Commit changes back to repo
+      # =========================
+
+      - name: Commit updated artifacts
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/god_state.json public/history.json
+          git config user.email "github-actions[bot]@users.noreply.github.com]"
+          git add public/god_state.json public/history.json public/index.html
           git commit -m "Apply monday fill" || echo "No changes"
           git push

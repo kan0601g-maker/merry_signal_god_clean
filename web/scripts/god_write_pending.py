@@ -252,6 +252,7 @@ def main():
         r = df.loc[dt]
         z = float(r["Zone"]) if np.isfinite(r.get("Zone", np.nan)) else np.nan
         cc = float(r["Close"])
+        ll = float(r["Low"]) if np.isfinite(r.get("Low", np.nan)) else np.nan  # ★ stop候補（当週Low）
         ap = float(r["ATR_PCT"]) if ("ATR_PCT" in df.columns and np.isfinite(r.get("ATR_PCT", np.nan))) else np.nan
         strength = (cc / z - 1.0) if (np.isfinite(z) and z > 0) else -np.inf
 
@@ -259,6 +260,7 @@ def main():
             {
                 "ticker": t,
                 "close": cc,
+                "low": ll,  # ★追加
                 "zone": z,
                 "atr_pct": ap,
                 "strength": float(strength),
@@ -266,20 +268,21 @@ def main():
         )
 
     ranked = rank_candidates(cands) if cands else []
-    pick = ranked[0]["ticker"] if ranked else None
+    picked = ranked[0] if ranked else None
 
     # 4) Output
-    if pick:
+    if picked:
+        stop_px = picked.get("low", np.nan)
         out = {
             "asof": asof,
             "status": "PENDING",
             "action": "BUY",
-            "target": pick,
+            "target": picked["ticker"],
             "lev": lev,
             "cash_ticker": cash_ticker,
             "pending_for": pending_for,
             "entry_price": None,
-            "stop_price": None,
+            "stop_price": (None if not np.isfinite(stop_px) else float(stop_px)),
             "reason": f"Entry detected (picked by {getattr(G,'PRIORITY_MODE','RISK_ADJ')}).",
         }
     else:
