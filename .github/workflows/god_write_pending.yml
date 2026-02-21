@@ -2,8 +2,8 @@ name: God Write Pending (Weekly)
 
 on:
   schedule:
-    # JST 金曜 06:10 = UTC 木曜 21:10
-    - cron: "10 21 * * 5"
+    # JST 金曜 06:10 = UTC 木曜 21:10（※UTC側は木曜なので day-of-week は 4）
+    - cron: "10 21 * * 4"
   workflow_dispatch:
 
 permissions:
@@ -32,10 +32,29 @@ jobs:
         run: |
           python -u scripts/god_write_pending.py
 
-      - name: Commit god_state.json and history.json
+      # ★ここから追加：R2へアップロード（public/ 全体）
+      - name: Install awscli
+        run: |
+          python -m pip install --upgrade awscli
+
+      - name: Upload public/ to Cloudflare R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET: merry-signal-data
+        run: |
+          aws s3 sync public "s3://$R2_BUCKET" \
+            --endpoint-url "https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com" \
+            --delete
+      # ★追加ここまで
+
+      # ★コミット対象も public/ 全体に（PWA資産も含める）
+      - name: Commit public assets (state + UI + PWA)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/god_state.json public/history.json
-          git commit -m "Update god_state (pending)" || echo "No changes"
+          git add public
+          git commit -m "Update public (pending + UI)" || echo "No changes"
           git push
