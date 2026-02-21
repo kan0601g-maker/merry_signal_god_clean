@@ -176,6 +176,20 @@
         <div class="v mono" id="cash">-</div>
       </div>
 
+      <!-- 追加：Entry / Stop / Risk -->
+      <div class="card span-4">
+        <div class="k">Entry Price</div>
+        <div class="v mono" id="entry">-</div>
+      </div>
+      <div class="card span-4">
+        <div class="k">Stop Price</div>
+        <div class="v mono" id="stop">-</div>
+      </div>
+      <div class="card span-4">
+        <div class="k">Risk (Entry-Stop)</div>
+        <div class="v mono" id="risk">-</div>
+      </div>
+
       <div class="card span-12">
         <div class="k">Reason</div>
         <div class="reason" id="reason">-</div>
@@ -283,6 +297,20 @@
         el('cash').textContent = data.cash_ticker ?? '-';
         el('reason').textContent = data.reason ?? '-';
 
+        // 追加：Entry / Stop / Risk
+        const fmt = (x) => (x == null ? '-' : (typeof x === 'number' ? x.toFixed(2) : String(x)));
+        const entry = data.entry_price;
+        const stop  = data.stop_price;
+
+        el('entry').textContent = fmt(entry);
+        el('stop').textContent  = fmt(stop);
+
+        if (typeof entry === 'number' && typeof stop === 'number') {
+          el('risk').textContent = (entry - stop).toFixed(2);
+        } else {
+          el('risk').textContent = '-';
+        }
+
         el('raw').textContent = JSON.stringify(data, null, 2);
 
         // history
@@ -296,6 +324,10 @@
         el('decisionTgt').textContent = '→ JSON 読み込み失敗';
         el('reason').textContent = 'Could not load ./god_state.json (' + e.message + ')';
         el('hist').textContent = '(history unavailable)';
+        // 追加カードも初期化
+        if (el('entry')) el('entry').textContent = '-';
+        if (el('stop')) el('stop').textContent = '-';
+        if (el('risk')) el('risk').textContent = '-';
       }
     }
 
