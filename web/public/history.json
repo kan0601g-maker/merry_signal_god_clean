@@ -12,6 +12,21 @@
     "reason": "Entry detected (picked by RISK_ADJ)."
   },
   {
+    "asof": "2026-04-10",
+    "status": "IN_POSITION",
+    "action": "HOLD",
+    "target": "XLP",
+    "lev": 3.0,
+    "cash_ticker": "SHY",
+    "pending_for": "2026-04-13",
+    "entry_price": 83.39667325286865,
+    "stop_price": 80.97000122070312,
+    "reason": "Filled at open. (2026-04-12T21:51:11)",
+    "take_profit": null,
+    "valid_until": "2026-04-13",
+    "updated_at": "2026-04-12T21:51:11"
+  },
+  {
     "asof": "2026-04-03",
     "status": "PENDING",
     "action": "CASH",
