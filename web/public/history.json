@@ -1,5 +1,17 @@
 [
   {
+    "asof": "2026-04-24",
+    "status": "PENDING",
+    "action": "BUY",
+    "target": "XLP",
+    "lev": 3.0,
+    "cash_ticker": "SHY",
+    "pending_for": "2026-04-27",
+    "entry_price": null,
+    "stop_price": 81.73999786376953,
+    "reason": "Entry detected (picked by RISK_ADJ)."
+  },
+  {
     "asof": "2026-04-17",
     "status": "PENDING",
     "action": "CASH",
