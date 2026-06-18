@@ -1,15 +1,12 @@
 {
-  "asof": "2026-06-12",
-  "status": "CASH",
-  "action": "HOLD",
-  "target": "SHY",
+  "asof": "2026-06-19",
+  "status": "PENDING",
+  "action": "BUY",
+  "target": "QQQ",
   "lev": 3.0,
   "cash_ticker": "SHY",
-  "pending_for": "2026-06-15",
+  "pending_for": "2026-06-22",
   "entry_price": null,
-  "stop_price": null,
-  "reason": "No position. (2026-06-14T22:35:02)",
-  "take_profit": null,
-  "valid_until": "2026-06-15",
-  "updated_at": "2026-06-14T22:35:02"
+  "stop_price": 720.8499755859375,
+  "reason": "Entry detected (picked by RISK_ADJ)."
 }
