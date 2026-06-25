@@ -1,15 +1,12 @@
 {
-  "asof": "2026-06-19",
-  "status": "IN_POSITION",
-  "action": "HOLD",
-  "target": "QQQ",
+  "asof": "2026-06-26",
+  "status": "PENDING",
+  "action": "BUY",
+  "target": "IBB",
   "lev": 3.0,
   "cash_ticker": "SHY",
-  "pending_for": "2026-06-22",
-  "entry_price": 737.3474522094726,
-  "stop_price": 720.8499755859375,
-  "reason": "Filled at open. (2026-06-21T22:36:09)",
-  "take_profit": null,
-  "valid_until": "2026-06-22",
-  "updated_at": "2026-06-21T22:36:09"
+  "pending_for": "2026-06-29",
+  "entry_price": null,
+  "stop_price": 174.97000122070312,
+  "reason": "Entry detected (picked by RISK_ADJ)."
 }
