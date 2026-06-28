@@ -1,12 +1,15 @@
 {
   "asof": "2026-06-26",
-  "status": "PENDING",
-  "action": "BUY",
+  "status": "IN_POSITION",
+  "action": "HOLD",
   "target": "IBB",
   "lev": 3.0,
   "cash_ticker": "SHY",
   "pending_for": "2026-06-29",
-  "entry_price": null,
+  "entry_price": 183.85677132568358,
   "stop_price": 174.97000122070312,
-  "reason": "Entry detected (picked by RISK_ADJ)."
+  "reason": "Filled at open. (2026-06-28T22:14:29)",
+  "take_profit": null,
+  "valid_until": "2026-06-29",
+  "updated_at": "2026-06-28T22:14:29"
 }
