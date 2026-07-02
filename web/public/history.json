@@ -1,5 +1,17 @@
 [
   {
+    "asof": "2026-07-03",
+    "status": "PENDING",
+    "action": "BUY",
+    "target": "ITA",
+    "lev": 3.0,
+    "cash_ticker": "SHY",
+    "pending_for": "2026-07-06",
+    "entry_price": null,
+    "stop_price": 238.00999450683594,
+    "reason": "Entry detected (picked by RISK_ADJ)."
+  },
+  {
     "asof": "2026-06-26",
     "status": "PENDING",
     "action": "BUY",
