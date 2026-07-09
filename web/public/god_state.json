@@ -1,15 +1,12 @@
 {
-  "asof": "2026-07-03",
-  "status": "IN_POSITION",
-  "action": "HOLD",
-  "target": "ITA",
+  "asof": "2026-07-10",
+  "status": "PENDING",
+  "action": "CASH",
+  "target": "SHY",
   "lev": 3.0,
   "cash_ticker": "SHY",
-  "pending_for": "2026-07-06",
-  "entry_price": 246.44927389526367,
-  "stop_price": 238.00999450683594,
-  "reason": "Filled at open. (2026-07-05T22:13:10)",
-  "take_profit": null,
-  "valid_until": "2026-07-06",
-  "updated_at": "2026-07-05T22:13:10"
+  "pending_for": "2026-07-13",
+  "entry_price": null,
+  "stop_price": null,
+  "reason": "No entry candidates this week."
 }
