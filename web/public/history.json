@@ -12,6 +12,21 @@
     "reason": "No entry candidates this week."
   },
   {
+    "asof": "2026-07-17",
+    "status": "CASH",
+    "action": "HOLD",
+    "target": "SHY",
+    "lev": 3.0,
+    "cash_ticker": "SHY",
+    "pending_for": "2026-07-20",
+    "entry_price": null,
+    "stop_price": null,
+    "reason": "No position. (2026-07-19T22:08:53)",
+    "take_profit": null,
+    "valid_until": "2026-07-20",
+    "updated_at": "2026-07-19T22:08:53"
+  },
+  {
     "asof": "2026-07-10",
     "status": "PENDING",
     "action": "CASH",
