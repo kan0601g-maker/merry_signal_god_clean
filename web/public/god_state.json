@@ -8,5 +8,8 @@
   "pending_for": "2026-08-10",
   "entry_price": null,
   "stop_price": 7504.77978515625,
-  "reason": "Entry detected (picked by RISK_ADJ)."
+  "reason": "Pending BUY but open price not available. (2026-08-09T21:47:47)",
+  "take_profit": null,
+  "valid_until": "2026-08-10",
+  "updated_at": "2026-08-09T21:47:47"
 }
