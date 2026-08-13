@@ -1,15 +1,12 @@
 {
-  "asof": "2026-08-07",
+  "asof": "2026-08-14",
   "status": "PENDING",
-  "action": "BUY",
-  "target": "^GSPC",
+  "action": "CASH",
+  "target": "SHY",
   "lev": 3.0,
   "cash_ticker": "SHY",
-  "pending_for": "2026-08-10",
+  "pending_for": "2026-08-17",
   "entry_price": null,
-  "stop_price": 7504.77978515625,
-  "reason": "Pending BUY but open price not available. (2026-08-09T21:47:47)",
-  "take_profit": null,
-  "valid_until": "2026-08-10",
-  "updated_at": "2026-08-09T21:47:47"
+  "stop_price": null,
+  "reason": "No entry candidates this week."
 }
