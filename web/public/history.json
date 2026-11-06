@@ -1,5 +1,17 @@
 [
   {
+    "asof": "2026-11-06",
+    "status": "PENDING",
+    "action": "CASH",
+    "target": "SHY",
+    "lev": 3.0,
+    "cash_ticker": "SHY",
+    "pending_for": "2026-11-09",
+    "entry_price": null,
+    "stop_price": null,
+    "reason": "No entry candidates this week."
+  },
+  {
     "asof": "2026-10-30",
     "status": "PENDING",
     "action": "CASH",
@@ -661,17 +673,5 @@
     "take_profit": null,
     "valid_until": "2026-05-04",
     "updated_at": "2026-05-10T22:05:43"
-  },
-  {
-    "asof": "2026-04-24",
-    "status": "PENDING",
-    "action": "BUY",
-    "target": "XLP",
-    "lev": 3.0,
-    "cash_ticker": "SHY",
-    "pending_for": "2026-04-27",
-    "entry_price": null,
-    "stop_price": 81.73999786376953,
-    "reason": "Entry detected (picked by RISK_ADJ)."
   }
 ]
